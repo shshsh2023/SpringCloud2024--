@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: cloud-payment-service
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        prefer-ip-address: true
+        service-name: ${spring.application.name}
+      config:
+        profile-separator: '-'    # 默认为',' 改为'-'
+        format: yaml
+        watch:
+          wait-time: 55
+          delay: 1000

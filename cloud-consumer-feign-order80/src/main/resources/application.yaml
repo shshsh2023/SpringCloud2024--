@@ -1,0 +1,144 @@
+server:
+  port: 80
+spring:
+  application:
+    name: cloud-consumer-order-service
+  cloud:
+    consul:
+      port: 8500
+      discovery:
+        service-name: ${spring.application.name}
+        prefer-ip-address: true  # 优先使用服务ip进行注册
+    openfeign:
+      encoder:
+        charset-from-content-type: true
+      client:
+        config:
+#          default:
+#            connectTimeout: 2000
+#            readTimeout: 2000
+#            loggerLevel: full
+          cloud-payment-service:
+            connectTimeout: 20000
+            readTimeout: 20000
+            loggerLevel: full
+      httpclient:
+
+        hc5:
+          enabled: true
+      # 压缩功能
+      compression:
+        request:
+          enabled: false  # 开启压缩
+          min-request-size: 2048  # 触发压缩的最小尺寸
+          mime-types: text/xml, application/xml, application/json  # 触发压缩数据类型
+        response:
+          enabled: false
+      circuitbreaker:
+        enabled: false
+        group:
+          enabled: true
+
+#日志功能配置
+logging:
+  level:
+    com:
+      song:
+        cloud:
+          apis:
+            PayFeignApi: trace
+          controller:
+            OrderGatewayController: debug
+    root: info
+
+# 熔断，降级配置
+#resilience4j:
+#  circuitbreaker:
+#    configs:
+#      default:
+#        failure-rate-threshold: 50  #设置50%的调用失败时打开断路器，超过失败清求百分比circuitBreaker变OPEN状态
+#        sliding-window-type: COUNT_BASED #滑动窗日的类型
+#        sliding-window-size: 6  #滑动窗口的大小配置COUNT_BASED表示6个请求，配置TIME_BASED表示6秒
+#        minimum-number-of-calls: 6   # 斷路器计算失数李或慢调用率之前所需的最小祥本(每个滑动窗口周期).，只有至少6个请求才会开始计算失败率
+#        automatic-transition-from-open-to-half-open-enabled: true  #是否启用自动从开启状态过度到半开状念，默认值为true。
+#        wait-duration-in-open-state: 5s  #从OPEN到HALF_OPEN状态需要等待的时间
+#        permitted-number-of-calls-in-half-open-state: 2    #半开状态允许的最大请求数，默认值为10
+#        record-exceptions:
+#          - java.lang.Exception
+#    instances:
+#      cloud-payment-service:
+#        base-config: default
+
+
+
+#
+#resilience4j:
+#  timelimiter:
+#    configs:
+#      default:
+#        timeout-duration: 10s   # 神坑的位置, timelimiter, 默认限制远程1s, 超于1s就超时异常, 配置了降级, 就走降级逻辑
+#  circuitbreaker:
+#    configs:
+#      default:
+#        failure-rate-threshold: 50
+#        slow-call-duration-threshold: 2s  # 慢调用时间阈值，高于这个阈值就是慢调用并且增加慢调用比例
+#        slow-call-rate-threshold: 30
+#        sliding-window-type: TIME_BASED
+#        sliding-window-size: 2
+#        minimum-number-of-calls: 2
+#        permitted-number-of-calls-in-half-open-state: 2
+#        wait-duration-in-open-state: 5s
+#        record-exceptions:
+#          - java.lang.Exception
+#    instances:
+#      cloud-payment-service:
+#        base-config: default
+#resilience4j:
+#  bulkhead:
+#    configs:
+#      default:
+#        max-concurrent-calls: 2  # 隔离允许并发线程执行的最大数量
+#        max-wait-duration: 1s  # 达到并发调用数量时，新的线程的阻塞时间，我只愿意等待1s，过时不候进舱譬兜底fallback
+#    instances:
+#      cloud-payment-service:
+#        base-config: default
+#  timelimiter:
+#    configs:
+#      default:
+#        timeout-duration: 20s
+#resilience4j:
+#  timelimiter:
+#    configs:
+#      default:
+#        timeout-duration: 10s
+#
+#  thread-pool-bulkhead:
+#    configs:
+#      default:
+#        core-thread-pool-size: 1
+#        max-thread-pool-size: 1
+#        queue-capacity: 1
+#    instances:
+#      cloud-payment-service:
+#        base-config: default
+
+
+#resilience4j:
+#  ratelimiter:
+#    configs:
+#      default:
+#        limit-for-period: 2  #在一次剧新周期内，允许执行的最大请求数
+#        limit-refresh-period: 1s  # 限流器每隔limitRefreshPeriod剧新一次，将允许处理的最大请求数量重置为limitForPeriod
+#        timeout-duration: 1   # 线程等待权限的默认等待时间
+#    instances:
+#      cloud-payment-service:
+#        base-config: default
+
+
+#management:
+#  zipkin:
+#    tracing:
+#      endpoint: http://127.0.0.1:9411/api/v2/spans
+#  tracing:
+#    sampling:
+#      probability: 1.0  # 采样率默认为0.1(0.1就是10次只能有一次被记录下来)，值越大收集越及时
